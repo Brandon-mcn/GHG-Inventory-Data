@@ -1,0 +1,29 @@
+---
+title: "GHG Inventory Report"
+author: "Enter Name Here"
+output: html_document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+```{r setup, include=FALSE}
+
+#Ignore This
+
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("pacman")
+pacman::p_load(readxl, magrittr, tidyverse, tidyr, dplyr, ggplot2, lubridate, devtools)
+install_github("Brandon-mcn/ghgtools")
+library(ghgtools)
+```
+
+```{r, include=FALSE}
+
+#Enter desired reporting year and GWP here. GWP choices are "SAR", "AR4", "AR5", and "AR6"
+
+ReportingYear <- 2020
+
+GWP <- "AR5"
+
+```
+
+# 
