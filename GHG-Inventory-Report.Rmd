@@ -25,7 +25,7 @@ library(ghgtools)
 
 ReportingYear <- 2019
 
-GWP <- "AR4"
+GWP <- "AR5"
 
 ```
 
