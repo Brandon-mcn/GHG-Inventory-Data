@@ -21,9 +21,18 @@ library(ghgtools)
 
 ```{r, include=FALSE}
 
-#Enter desired reporting year and GWP here. GWP choices are "SAR", "AR4", "AR5", and "AR6"
+# READ ME
 
-ReportingYear <- 2019
+# Add your activity data template to the GHG Inventory Report project folder. You can either drag and drop activity data into the provided template 'ghgtools_ActivityData_V1' or overwrite this file with your own activity data file. Please ensure the data is formatted correctly and saved as 'ghgtools_ActivityData_V1.xlsx' - visit ghgtools.io for for details
+
+# Add your asset portfolio data template to the GHG Inventory Report project folder. You can either drag and drop activity data into the provided template 'ghgtools_AssetPortfolio_V1' or overwrite this file with your own activity data file. Please ensure the data is formatted correctly and saved as 'ghgtools_AssetPortfolio_V1.xlsx' - visit ghgtools.io for for details
+
+
+# Enter desired reporting year here. The ghgtools package currently supports GHG emissions inventory calculation for 2019 - 2022
+
+ReportingYear <- 2019 
+
+# Enter GWP here. GWP choices are "SAR", "AR4", "AR5", and "AR6"
 
 GWP <- "AR5"
 
