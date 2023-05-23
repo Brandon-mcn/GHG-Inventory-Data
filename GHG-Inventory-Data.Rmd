@@ -1,9 +1,7 @@
 ---
-title: "GHG Inventory Report"
-author: "Enter Company Name Here"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
-output: word_document
-always_allow_html: true
+title: "GHG Inventory Data"
+author: "Brandon-mcn"
+output: html_document
 ---
 
 ```{r setup, include=FALSE, echo=FALSE}
@@ -13,115 +11,102 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, include=FALSE, echo=FALSE}
 if (!require("pacman")) install.packages("pacman")
 library(pacman)
-pacman::p_load(readxl, magrittr, tidyverse, lubridate, devtools, kableExtra, scales)
+pacman::p_load(readxl, magrittr, tidyverse, lubridate, devtools)
 install_github("Brandon-mcn/ghgtools")
 library(ghgtools)
 ```
 
+Welcome to the ghgtools inventory data module!
+
+Add your activity data template to the GHG Inventory Report project folder. You can either drag and drop activity data into the provided template 'ghgtools_ActivityData' or overwrite this file with your own activity data file. Please ensure the data is formatted correctly and saved as 'ghgtools_ActivityData.xlsx'
+
+Add your asset portfolio data template to the GHG Inventory Report project folder. You can either drag and drop activity data into the provided template 'ghgtools_AssetPortfolio_V1' or overwrite this file with your own activity data file. Please ensure the data is formatted correctly and saved as 'ghgtools_AssetPortfolio_V1.xlsx'
+
+Enter your desired GWP here. GWP choices are "SAR", "TAR", "AR4", and "AR5"
 
 ```{r, include=FALSE}
-
-# READ ME r
-
-# Add your activity data template to the GHG Inventory Report project folder. You can either drag and drop activity data into the provided template 'ghgtools_ActivityData_V1' or overwrite this file with your own activity data file. Please ensure the data is formatted correctly and saved as 'ghgtools_ActivityData_V1.xlsx' - visit ghgtools.io for for details
-
-# Add your asset portfolio data template to the GHG Inventory Report project folder. You can either drag and drop activity data into the provided template 'ghgtools_AssetPortfolio_V1' or overwrite this file with your own activity data file. Please ensure the data is formatted correctly and saved as 'ghgtools_AssetPortfolio_V1.xlsx' - visit ghgtools.io for for details
-
-
-# Enter desired reporting year here. The ghgtools package currently supports GHG emissions inventory calculation for 2019 - 2022
-
-ReportingYear <- 2019 
-
-# Enter GWP here. GWP choices are "SAR", "AR4", "AR5", and "AR6"
-
 GWP <- "AR5"
-
 ```
 
-\newpage
+Now hit Ctrl+Alt+R to run all code and generate your GHG inventory data
 
-#### Purpose of this Document 
-
-We recognize that tracking, measuring, and reporting Greenhouse Gas (GHG) emissions is essential to understand risks and explore opportunities related to climate change and the transition towards a renewable energy economy. This document is an annual inventory of all relevant emissions from our operations, pursuant to the standards set by WRI's GHG Protocol Corporate Standard. 
-
-#### Reporting Boundary
-
-The following GHG Inventory accounts for all relevant energy-related emissions as a result of business operations. Direct emissions from the combustion of fossil fuels, i.e. natural gas, are accounted for as _Scope 1_ emissions. Indirect emissions from the consumption of electricity, steam, or other district heat/cooling are accounted for as _Scope 2_ emissions. Other Indirect emissions from upstream and downstream value chain activities, accounted for as _Scope 3_ emissions, are excluded from this report. 
-
-All emissions are reported for the calendar year of `r ReportingYear`
-
-All emissions are calculated using `r GWP` global warming potentials
-
-#### About _Enter Company Name Here_
-
-This is a description of our company and how much we care about the environment. 
-
-\newpage
-
-# Overview of `r ReportingYear` GHG emissions
-
-```{r, include=FALSE, message=FALSE, echo=FALSE}
-ghgtools::GHG_RawData(GWP)
-ghgtools::GHG_AnnualReport(ReportingYear)
-
-df1 <- read_csv("GHG_AnnualReport.csv") %>% 
-  group_by(Scope, ServiceType) %>% 
-  summarize(MTCO2e = sum(MetricTonsCO2e)) %>% 
-  mutate(MTCO2e = number(MTCO2e, big.mark = ","))
-Figure1 <- kable(df1, format = "pipe", padding = 50, caption = "GHG Emissions by Service Type")
+```{r, include=FALSE, echo=FALSE}
+#load in Asset Portfolio
+  
+  AssetPortfolio <- read_excel("ghgtools_AssetPortfolio.xlsx", sheet = "AssetPortfolio")
+  
+  #load in emission factor library and filter out extra columns
+  
+  EFL <-  read_excel("OpenEFL.xlsx", sheet = "EFL")
+  
+  #load in scope type mapping
+  
+  ScopeType <-  read_excel("OpenEFL.xlsx", sheet = "ScopeType")
+  
+  #load in eGRID lookup table for electricity subregions
+  
+  eGRIDlookup <- read_excel("OpenEFL.xlsx", sheet = "eGRIDlookup") 
+  
+  #load in GWPs and filter to selected assessment report
+  
+  x <- if(GWP == "SAR"){
+    2
+  } else if (GWP == "TAR"){
+    3
+  } else if (GWP == "AR4"){
+    4
+  } else if (GWP == "AR5"){
+    5
+  } else {
+    NA
+  }
+  GWPs <- read_excel("OpenEFL.xlsx", sheet = "GWPs")
+  GWPs <- GWPs[c(1,x)]
+  
+  #load Activity Data and join to Asset Portfolio
+  
+  GHGrawdata <- read_excel("ghgtools_ActivityData.xlsx", sheet = "ActivityData") %>%
+    mutate(Year = year(Date)) %>%
+    relocate(Year, .after = Date) %>%
+    left_join(AssetPortfolio, by = "AssetID") %>%
+    
+    #join egrid_subregions for electricity to Activity Data
+    
+    left_join(eGRIDlookup, by = c("ZIP", "ServiceType")) %>%
+    
+    #map scope type and emissions category Activity Data
+    
+    left_join(ScopeType, by = c("AssetType", "ServiceType")) %>% 
+    
+    #Map emission factors to Activity Data
+    
+    left_join(EFL, by = c("Year", "ServiceType", "EmissionCategory", "Country", "Subregion", "UOM")) %>% 
+    
+    #Load GWPs
+    
+    add_column(GWP = colnames(GWPs[,2])) %>% 
+    add_column(CO2GWP = GWPs[[1,2]]) %>%
+    add_column(CH4GWP = GWPs[[2,2]]) %>%
+    add_column(N2OGWP = GWPs[[3,2]]) %>%
+    add_column(NF3GWP = GWPs[[4,2]]) %>%
+    add_column(SF6GWP = GWPs[[5,2]]) %>% 
+    
+    #Calculate GHG emissions for each activity data record
+    
+    mutate(kgCO2e.per.UOM = (CO2_kg.per.UOM*CO2GWP) + (CH4_kg.per.UOM*CH4GWP) + (N2O_kg.per.UOM*N2OGWP) + (NF3_kg.per.UOM*NF3GWP) + (SF6_kg.per.UOM*SF6GWP) +(AUXCO2e_kg.per.UOM)) %>% 
+    mutate(kgCO2e = Usage*kgCO2e.per.UOM) %>% 
+    mutate(MetricTonsCO2e = kgCO2e/1000)
+  
+  #Generate error report
+  
+  GHG_ErrorReport <- GHGrawdata %>% 
+    filter(is.na(MetricTonsCO2e)) %>% 
+    write_excel_csv("GHG_ErrorReport.csv")
+  
+  #Generate GHG Raw Data
+  
+  GHG_FullRawData <- GHGrawdata %>% 
+    filter(!is.na(MetricTonsCO2e)) %>% 
+    write_excel_csv("GHG_RawData.csv")
 ```
 
-<br>
-
-`r Figure1`
-
-<br>
-
-```{r, include=FALSE, message=FALSE, echo=FALSE}
-df2 <- read_csv("GHG_AnnualReport.csv") %>% 
-  group_by(Region) %>% 
-  summarize(MTCO2e = sum(MetricTonsCO2e)) %>% 
-  mutate(MTCO2e = number(MTCO2e, big.mark = ","))
-Figure2 <- kable(df2, format = "pipe", padding = 50, caption = "GHG Emissions by Region")
-```
-
-<br>
-
-`r Figure2`
-
-\newpage
-
-# Charts of `r ReportingYear` GHG emissions
-
-```{r, include=FALSE, message=FALSE, echo=FALSE}
-df3 <- read_csv("GHG_AnnualReport.csv") %>%
-  mutate(Date = as.Date(Date)) %>% 
-  mutate(Month = format(Date, "%m")) %>% 
-  mutate(MonthName = month.abb[as.numeric(Month)]) %>%
-  relocate(Month, .after = Date) %>% 
-  relocate(MonthName, .after = Date) %>% 
-  group_by(Month) %>% 
-  summarize(MTCO2e = sum(MetricTonsCO2e)) %>% 
-  mutate(MTCO2e = number(MTCO2e, accuracy = 1, big.mark = ","))
-Figure3 <- ggplot(df3, aes(x=Month, y=MTCO2e, group=1)) +
-  geom_line(color="Blue", size = 1) +
-  geom_point(size = 2)+
-  scale_x_discrete(labels=c("01" = "Jan","02" = "Feb","03" = "Mar","04" = "Apr","05" = "May","06" = "Jun","07" = "Jul","08" = "Aug","09" = "Sep","10" = "Oct","11" = "Nov","12" = "Dec" ))+
-  labs(title = "Trending GHG Emissions")
-```
-
-```{r, echo=FALSE}
-Figure3
-```
-
-<br>
-
-## More to come! The GHG Inventory report is still in development
-
-<br>
-
-_Generated by_ [ghgtools.io](https://www.ghgtools.io/)
-
-```{r, include=FALSE, message=FALSE}
-rmarkdown::render("GHG-Inventory-Report.Rmd", output_file = "GHG-Inventory-Report.docx")
-```
