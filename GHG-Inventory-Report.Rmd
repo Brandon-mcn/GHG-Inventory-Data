@@ -21,7 +21,7 @@ library(ghgtools)
 
 ```{r, include=FALSE}
 
-# READ ME
+# READ ME r
 
 # Add your activity data template to the GHG Inventory Report project folder. You can either drag and drop activity data into the provided template 'ghgtools_ActivityData_V1' or overwrite this file with your own activity data file. Please ensure the data is formatted correctly and saved as 'ghgtools_ActivityData_V1.xlsx' - visit ghgtools.io for for details
 
