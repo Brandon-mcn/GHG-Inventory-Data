@@ -1,2 +1,2 @@
-# GHG-Inventory-Report
-Follow the instructions at ghgtools.io to generate a standardized GHG inventory report using this repository. 
+# ghgtools Template
+Clone this repository and start using ghgtools to meet you greenhouse gas accounting needs! 
