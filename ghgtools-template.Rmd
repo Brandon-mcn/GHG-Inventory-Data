@@ -84,8 +84,14 @@ Here are a few example charts to get started with data visualization.
 
 ```{r, echo=FALSE, message = FALSE, warning=FALSE}
 ghg_summary <- GHGrawdata[, .(EmissionTotal = sum(MT_co2e)), by = emission_scope]
+ghg_summary[, percentage := (EmissionTotal / sum(EmissionTotal))*100]
 GHG_sum_chart <- ggplot(ghg_summary, aes(x = emission_scope, y = EmissionTotal)) +
-  geom_bar(stat = "identity", fill = "darkgreen", color = "black") +
+  geom_bar(stat = "identity", width = 0.8, fill = "grey", color = "black") +
+  geom_text(aes(label = paste0(round(percentage), "%")),
+            position = position_stack(vjust = 0.5),
+            size = 4,
+            fontface = "bold",
+            color = "black") +
   labs(title = "GHG Emissions Total",
        x = "",
        y = "MT CO2e")
@@ -95,10 +101,10 @@ print(GHG_sum_chart)
 <br>
 
 ```{r, echo=FALSE, message = FALSE, warning=FALSE}
-Ecat_summary <- GHGrawdata[, .(EmissionTotal = sum(MT_co2e)), by = emission_category]
-Ecat_sum_chart <- ggplot(Ecat_summary, aes(x = reorder(emission_category, EmissionTotal), y = EmissionTotal)) +
-  geom_bar(stat = "identity", fill = "darkgreen", color = "black") +
-  labs(title = "GHG Emissions by Category",
+Ecat_summary <- GHGrawdata[, .(EmissionTotal = sum(MT_co2e)), by = service_type]
+Ecat_sum_chart <- ggplot(Ecat_summary, aes(x = reorder(service_type, EmissionTotal), y = EmissionTotal)) +
+  geom_bar(stat = "identity", width = 0.7, fill = "darkgreen", color = "black") +
+  labs(title = "GHG Emissions by Activity Type",
        x = "",
        y = "MT CO2e") +
   coord_flip()
@@ -114,13 +120,13 @@ state_data[, EmissionTotal := round(EmissionTotal, 0)]
 state_data[, mid := EmissionTotal - (0.5 * EmissionTotal)]
 state_data_chart <- ggplot(state_data, aes(x = state, y = EmissionTotal)) +
   geom_bar(stat = "identity", width = 0.5, fill = "lightgrey", color = "black") +
-   geom_text(aes(x = state, y = mid, label = format(EmissionTotal, nsmall = 0)), 
-            size = 5,
+   geom_text(aes(x = state, y = mid, label = paste0(EmissionTotal, " MT CO2e")), 
+            size = 4,
             fontface = "bold", 
             color = "black") +
   labs(title = "Scope 1 & 2 Emissions by State",
        x = "",
-       y = "MT CO2e") +
+       y = "") +
   coord_flip()
 print(state_data_chart)
 ```
