@@ -82,7 +82,7 @@ fwrite(GHGrawdata, "GHGrawdata.csv")
 <br>
 Here are a few example charts to get started with data visualization.
 
-```{r, include=FALSE, message = FALSE, warning=FALSE}
+```{r, echo=FALSE, message = FALSE, warning=FALSE}
 ghg_summary <- GHGrawdata[, .(EmissionTotal = sum(MT_co2e)), by = emission_scope]
 GHG_sum_chart <- ggplot(ghg_summary, aes(x = emission_scope, y = EmissionTotal)) +
   geom_bar(stat = "identity", fill = "darkgreen", color = "black") +
@@ -94,7 +94,7 @@ print(GHG_sum_chart)
 
 <br>
 
-```{r, include=FALSE, message = FALSE, warning=FALSE}
+```{r, echo=FALSE, message = FALSE, warning=FALSE}
 Ecat_summary <- GHGrawdata[, .(EmissionTotal = sum(MT_co2e)), by = emission_category]
 Ecat_sum_chart <- ggplot(Ecat_summary, aes(x = reorder(emission_category, EmissionTotal), y = EmissionTotal)) +
   geom_bar(stat = "identity", fill = "darkgreen", color = "black") +
@@ -107,7 +107,7 @@ print(Ecat_sum_chart)
 
 <br>
 
-```{r, include=FALSE, message = FALSE, warning=FALSE}
+```{r, echo=FALSE, message = FALSE, warning=FALSE}
 scope1and2 <- c("Scope 1", "Scope 2")
 state_data <- GHGrawdata[emission_scope %in% scope1and2, .(EmissionTotal = sum(MT_co2e)), by = state]
 state_data_chart <- ggplot(state_data, aes(x = reorder(state, EmissionTotal), y = EmissionTotal)) +
